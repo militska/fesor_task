@@ -21,9 +21,6 @@ class Project
     /*** @var array Задачи */
     public $tasks;
 
-    /*** @var array Ошибки */
-    public $errors;
-
     /***
      * Project constructor.
      * @param string $title
@@ -34,32 +31,34 @@ class Project
     }
 
     /*** @return bool */
-    public function isResolved() :bool
+    public function isResolved(): bool
     {
         return $this->state = self::RESOLVED_STATE;
     }
 
     /*** @return bool */
-    public function isInProgress() :bool
+    public function isInProgress(): bool
     {
         return $this->state = self::IN_PROGRESS_STATE;
     }
 
     /** Закрытие проекта, закрыть можно, только если закрыты всего его задачи */
-    public function resolved(): void
+    public function resolved(): bool
     {
-        $allResolved = true;
+        $errors = [];
         /*** @var $task Task */
         foreach ($this->tasks as $task) {
             if (!$task->isResolved()) {
-                $allResolved = false;
-                $this->errors[] = 'Не все задачи закрыты';
+                $errors[] = false;
             }
         }
 
-        if ($allResolved) {
+        if (empty($errors)) {
             $this->state = self::RESOLVED_STATE;
+            return true;
         }
+
+        return false;
     }
 
 
@@ -73,6 +72,9 @@ class Project
 
 }
 
+/**
+ * Class Task
+ */
 class Task
 {
     /** Состояния проекта */
@@ -80,13 +82,30 @@ class Task
     const IN_PROGRESS_STATE = 2;
     const RESOLVED_STATE = 3;
 
+    /** @var integer */
     private $state;
 
+    /** @var string */
+    public $descr;
 
+    /** @var string */
+    public $descrFull;
+
+    /** @var integer
+     * @todo можно унести в таблицу-связку (задача - проект)
+     */
     public $projectId;
 
     /*** @var array Ошибки */
     public $errors;
+
+    /***
+     * Task constructor.
+     */
+    public function __construct()
+    {
+        $this->state = self::TODO_STATE;
+    }
 
     /** @return bool */
     public function isResolved()
@@ -94,8 +113,21 @@ class Task
         return $this->state == self::RESOLVED_STATE;
     }
 
+    /** @return bool */
+    public function isInProgress()
+    {
+        return $this->state == self::IN_PROGRESS_STATE;
+    }
+
+    /** @return bool */
+    public function isToDo()
+    {
+        return $this->state == self::TODO_STATE;
+    }
+
     /*** Берем задача в работу*/
-    public function takeToWork() :void {
+    public function takeToWork(): void
+    {
         if ($this->state == self::TODO_STATE) {
             $this->state = self::RESOLVED_STATE;
         } else {
@@ -104,7 +136,8 @@ class Task
     }
 
     /*** Закрываем задачу */
-    public function resolved() :void {
+    public function resolved(): void
+    {
         if ($this->state == self::IN_PROGRESS_STATE) {
             $this->state = self::IN_PROGRESS_STATE;
         } else {
@@ -114,8 +147,35 @@ class Task
 }
 
 
+class Client
+{
 
-class Client {
+    public function create()
+    {
+        $task = new  Task();
+        $task->descr = "test";
+        $task->descrFull = "test test";
+
+        $task2 = new  Task();
+        $task2->descr = "test";
+        $task2->descrFull = "test test";
+
+        $project = new Project("new project");
+
+        $project->addTask($task);
+        $project->addTask($task2);
 
 
+        $task->takeToWork();
+        $task->resolved();
+
+        $task->takeToWork();
+
+
+        if (!$project->resolved()) {
+            $task->resolved();
+        }
+
+        $project->resolved();
+    }
 }
