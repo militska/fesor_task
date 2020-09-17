@@ -21,6 +21,9 @@ class Project
     /*** @var array Задачи */
     public $tasks;
 
+    /*** @var array Ошибки */
+    public $errors;
+
     /***
      * Project constructor.
      * @param string $title
@@ -28,6 +31,8 @@ class Project
     public function __construct(string $title)
     {
         $this->title = $title;
+        // вообщет, стартовать нужно в статусе "новый", а "в работу" переводить отдельно
+        $this->state = self::IN_PROGRESS_STATE;
     }
 
     /*** @return bool */
@@ -42,29 +47,24 @@ class Project
         return $this->state = self::IN_PROGRESS_STATE;
     }
 
-    /** Закрытие проекта, закрыть можно, только если закрыты всего его задачи */
+    /** @return bool Закрытие проекта, закрыть можно, только если закрыты всего его задачи*/
     public function resolved(): bool
     {
-        $errors = [];
         /*** @var $task Task */
         foreach ($this->tasks as $task) {
             if (!$task->isResolved()) {
-                $errors[] = false;
+                $this->errors[] = "В проекте остались нерешенные задачи";
+                return false;
             }
         }
-
-        if (empty($errors)) {
-            $this->state = self::RESOLVED_STATE;
-            return true;
-        }
-
-        return false;
+        $this->state = self::RESOLVED_STATE;
+        return true;
     }
 
-
+    /*** @param Task $task */
     public function addTask(Task $task): void
     {
-        // @todo можно перести в таблицу связку, что бы задача не хранила в себе ид проекта
+        //** @todo можно перести в таблицу связку, что бы задача не хранила в себе ид проекта */
         $task->projectId = $this->id;
 
         $this->tasks[] = $task;
