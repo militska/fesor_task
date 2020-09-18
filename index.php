@@ -10,7 +10,10 @@ class Project
     const RESOLVED_STATE = 2;
 
     /** @var integer */
-    private $id;
+    public $id;
+
+    /** @var integer */
+    public $parentProjectId;
 
     /** @var string */
     public $title;
@@ -27,11 +30,11 @@ class Project
     /***
      * Project constructor.
      * @param string $title
+     * @param int|null $parentProjectId
      */
     public function __construct(string $title)
     {
         $this->title = $title;
-        // вообщет, стартовать нужно в статусе "новый", а "в работу" переводить отдельно
         $this->state = self::IN_PROGRESS_STATE;
     }
 
@@ -64,9 +67,6 @@ class Project
     /*** @param Task $task */
     public function addTask(Task $task): void
     {
-        //** @todo можно перести в таблицу связку, что бы задача не хранила в себе ид проекта */
-        $task->projectId = $this->id;
-
         $this->tasks[] = $task;
     }
 
@@ -82,28 +82,31 @@ class Task
     const IN_PROGRESS_STATE = 2;
     const RESOLVED_STATE = 3;
 
-    /** @var integer */
-    private $state;
-
     /** @var string */
     public $descr;
 
     /** @var string */
     public $descrFull;
 
-    /** @var integer
-     * @todo можно унести в таблицу-связку (задача - проект)
-     */
+    /** @var integer */
+    public $parentTaskId;
+
+    /** @var integer */
     public $projectId;
 
     /*** @var array Ошибки */
     public $errors;
 
+    /** @var integer */
+    private $state;
+
     /***
      * Task constructor.
+     * @param integer $projectId
      */
-    public function __construct()
+    public function __construct(int $projectId)
     {
+        $this->projectId = $projectId;
         $this->state = self::TODO_STATE;
     }
 
@@ -147,20 +150,27 @@ class Task
 }
 
 
+/***
+ * Class Client
+ */
 class Client
 {
 
+    /***
+     *
+     */
     public function create()
     {
-        $task = new  Task();
+        $project = new Project("new project");
+
+        $task = new  Task($project->id);
         $task->descr = "test";
         $task->descrFull = "test test";
 
-        $task2 = new  Task();
+        $task2 = new  Task($project->id);
         $task2->descr = "test";
         $task2->descrFull = "test test";
 
-        $project = new Project("new project");
 
         $project->addTask($task);
         $project->addTask($task2);
