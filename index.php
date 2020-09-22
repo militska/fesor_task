@@ -12,9 +12,6 @@ class Project
     /** @var integer */
     public $id;
 
-    /** @var integer */
-    public $parentProjectId;
-
     /** @var string */
     public $title;
 
@@ -70,6 +67,12 @@ class Project
         $this->tasks[] = $task;
     }
 
+    /** @return array */
+    public function getTasks() : array
+    {
+        return $this->tasks;
+    }
+
 }
 
 /**
@@ -87,9 +90,6 @@ class Task
 
     /** @var string */
     public $descrFull;
-
-    /** @var integer */
-    public $parentTaskId;
 
     /** @var integer */
     public $projectId;
